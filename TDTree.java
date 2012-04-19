@@ -35,7 +35,7 @@ public class TDTree {
 		Node(Point value){
 			this(value, null, null, 0, 0);
 		}
-
+		Node(Point value, Node lt, Node rt, int depth, int height){
 			this.value = value;
 			this.lt = lt;
 			this.rt = rt;
