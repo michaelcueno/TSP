@@ -114,42 +114,122 @@ public class TDTree {
 		  sorted[j] = pts[j];
 	  }
 	  
-	  return buildBalanced( sorted, (1/4)*sorted.length, (3/4)*sorted.length, root, 0 );
+	  return buildBalanced( sorted, (1/4)*sorted.length, root, 0 );
   }
 
-  // It's just a matter of inserting in the correct order. 
-  // always insert the median followed by the median of the left and right partition
-  //  ------------x----------X-----------x---------- X dimension
-  //  -----x-----------x-----------x----------x----- Y dimension
-  //   
-  public Node buildBalanced(Point[] pts, int med_x, int med_y, Node t, int depth){
+  /*   
+   * Vars:
+   * 	xySort: Point array with first half = point set sorted on x dimension
+   * 				 second half = point set sorted on y dimension
+   * 	med: median of the sub array
+   * 	split : the middle of xySort (0-split = x sorted while split - xySort.length = y sorted)
+   * 	leftX, leftY, rightX, rightY : sorted arrays based on x or y, eventually get concatonated
+   * 		as leftXleftY and rightXrightY and stored into ....
+   * 	left, right: point arrays that are passed into next recursive call as xySort
+   *
+   */   
+  public Node buildBalanced(Point[] xySort, int med, Node t, int depth){
   
-	  if(pts.length == 0){
+	  if(xySort.length == 0){
 		  return null;
-		  
-	  }else if(pts.length == 1){
-		  t = new Node(pts[0]);
-		  t.depth = depth;
-		  
 	  }else if(depth%2 == 0){
-		  t = new Node( pts[pts.length/2] );
+		  int split = xySort.length/2;
+		  t = new Node( xySort[med] );
 		  t.depth = depth;
-		  int size = pts.length;
-		  int mid = size/2;
-		  Point[] left = Arrays.copyOfRange(pts, 0, mid);
-		  Point[] right = Arrays.copyOfRange(pts, mid+1, size);
-		  t.lt = (buildBalanced(left, t.lt, depth+1));
-		  t.rt = (buildBalanced(right, t.rt, depth+1));
+
+		  Point[] leftX = Arrays.copyOfRange(xySort, 0, med);// append y values
+		  Point[] rightX = Arrays.copyOfRange(xySort, med+1, split);
+		  Point[] leftY = new Point[split/2];
+		  Point[] rightY = new Point[split/2];
+
+		  for(int i = split; i < xySort.length ; i++){
+			  int j = 0;
+			  if( Arrays.asList(leftX).contains(xySort[i])){
+				 leftY[j] = xySort[i];
+				 j++;
+			  }
+		  } 
+		  for(int i = split; i < xySort.length ; i++){
+			  int j = 0;
+			  if( Arrays.asList(rightX).contains(xySort[i])){
+				 rightY[j] = xySort[i];
+				 j++;
+			  }
+		  }
+
+		  Point[] left = concatArray(leftX, leftY);
+		  Point[] right = concatArray(rightX, rightY);
+
+		  // Find median x value amongst the y sorted values in left and right
+		  // to be used in next recursive call. 
+
+		  med = leftX.length/2;
+		  int lt_med = 0;
+		  for(int i = leftX.length; i < left.length ; i++){
+			  if( left[i] == left[med])
+				  lt_med = i;
+		  }
+		  // lt_med now equals the index to left where t's left node resides amongst the sorted y values
+
+		  med = rightX.length/2;
+		  int rt_med = 0;
+		  for(int i = rightX.length; i < right.length ; i++){
+			  if( right[i] == right[med])
+				  rt_med = i;
+		  }
+
+		  t.lt = (buildBalanced(left, lt_med, t.lt, depth+1));
+		  t.rt = (buildBalanced(right, rt_med, t.rt, depth+1));
 		  
 	  }else{
-		  t = new Node( pts[pts.length/2] );
+		  // Make relevant for the y-dimension...
+		  int split = xySort.length/2;
+		  t = new Node( xySort[med] );
 		  t.depth = depth;
-		  int size = pts.length;
-		  int mid = size/2;
-		  Point[] left = Arrays.copyOfRange(pts, 0, mid);
-		  Point[] right = Arrays.copyOfRange(pts, mid+1, size);
-		  t.lt = (buildBalanced(left, t.lt, depth+1));
-		  t.rt = (buildBalanced(right, t.rt, depth+1));
+
+		  Point[] leftX = Arrays.copyOfRange(xySort, 0, med);// append y values
+		  Point[] rightX = Arrays.copyOfRange(xySort, med+1, split);
+		  Point[] leftY = new Point[split/2];
+		  Point[] rightY = new Point[split/2];
+
+		  for(int i = split; i < xySort.length ; i++){
+			  int j = 0;
+			  if( Arrays.asList(leftX).contains(xySort[i])){
+				 leftY[j] = xySort[i];
+				 j++;
+			  }
+		  } 
+		  for(int i = split; i < xySort.length ; i++){
+			  int j = 0;
+			  if( Arrays.asList(rightX).contains(xySort[i])){
+				 rightY[j] = xySort[i];
+				 j++;
+			  }
+		  }
+
+		  Point[] left = concatArray(leftX, leftY);
+		  Point[] right = concatArray(rightX, rightY);
+
+		  // Find median x value amongst the y sorted values in left and right
+		  // to be used in next recursive call. 
+
+		  med = leftX.length/2;
+		  int lt_med = 0;
+		  for(int i = leftX.length; i < left.length ; i++){
+			  if( left[i] == left[med])
+				  lt_med = i;
+		  }
+		  // lt_med now equals the index to left where t's left node resides amongst the sorted y values
+
+		  med = rightX.length/2;
+		  int rt_med = 0;
+		  for(int i = rightX.length; i < right.length ; i++){
+			  if( right[i] == right[med])
+				  rt_med = i;
+		  }
+
+		  t.lt = (buildBalanced(left, lt_med, t.lt, depth+1));
+		  t.rt = (buildBalanced(right, rt_med, t.rt, depth+1));
 	
 	  }
 	  
@@ -520,5 +600,52 @@ public class TDTree {
 			pts = toArrayList( t.rt, pts);
 		
 		return pts;
+	}
+	
+	static Point[] concatArray( Point[] x, Point[] y ){
+
+		int size = x.length;
+		if(size != y.length){
+			System.out.println("Fatal Error: in concatArray, array lengths must match");
+		}
+		Point[] result = new Point[size*2];
+		for(int i = 0; i < size ; i++){
+			result[i] = x[i];
+		}
+		for(int i = size; i < size*2 ; i++){
+			result[i] = y[i-size];
+		}
+		return result;
+	}
+
+	public static void main(String args[]){
+		
+		// TEST CASE 1     --------------------------------------------------
+		System.out.println("TEST CASE FOR concatArray( Point[] x, Point[] y)"); 
+		                 //--------------------------------------------------
+
+		Point[] x = new Point[5];
+		Point[] y = new Point[5];
+		for(int i = 0 ; i < x.length; i++){
+			x[i] = new Point(1.11*i, 2.22*i);
+		}
+		for(int i = 0 ; i < x.length; i++){
+			y[i] = new Point(1.11*i, 2.22*i);
+		}
+		Point[] concat = concatArray(x,y);
+		System.out.print("x: ");
+		for(int i = 0 ; i < x.length; i++){
+			System.out.print(x[i] + ", ");
+		}
+		System.out.println();
+		System.out.print("x: ");
+		for(int i = 0 ; i < x.length; i++){
+			System.out.print(y[i] + ", ");
+		}
+		System.out.println();
+		System.out.print("concationated: ");
+		for(int i = 0 ; i < concat.length; i++){
+			System.out.print(concat[i] + ", ");
+		}
 	}
 }

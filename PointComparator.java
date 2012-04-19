@@ -20,19 +20,24 @@ public class PointComparator implements Comparator<Point> {
 			else if(arg0.x() > arg1.x())
 				return 1;
 			else
-				return 0;
-			
+				if(arg0.y() < arg1.y()) 
+					return 0;
+				else
+					return 1;
+
 		} else if(input.equals("y")) {
 			if(arg0.y() < arg1.y())
 				return 0;
 			else if(arg0.y() > arg1.y())
 				return 1;
 			else
-				return 0;
+				if(arg0.x() < arg1.x())
+				        return 0;
+				else 
+					return 1;
 			
 		} else {
-			System.out.println("Must use either \"x\" or \"y\" in the constructor");
-			System.out.println("Program exiting...");
+			System.out.println("ERROR: Must use either \"x\" or \"y\" in the constructor for Point Comparator");
 			System.exit(-1);
 			//never will be reached
 			return -1;
