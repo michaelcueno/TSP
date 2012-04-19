@@ -114,14 +114,15 @@ public class TDTree {
 		  sorted[j] = pts[j];
 	  }
 	  
-	  return buildBalanced( sorted, root, 0 );
+	  return buildBalanced( sorted, (1/4)*sorted.length, (3/4)*sorted.length, root, 0 );
   }
 
   // It's just a matter of inserting in the correct order. 
   // always insert the median followed by the median of the left and right partition
   //  ------------x----------X-----------x---------- X dimension
   //  -----x-----------x-----------x----------x----- Y dimension
-  public Node buildBalanced(Point[] pts, Node t, int depth){
+  //   
+  public Node buildBalanced(Point[] pts, int med_x, int med_y, Node t, int depth){
   
 	  if(pts.length == 0){
 		  return null;
@@ -131,7 +132,6 @@ public class TDTree {
 		  t.depth = depth;
 		  
 	  }else if(depth%2 == 0){
-		  Arrays.sort(pts, new PointComparator("x"));
 		  t = new Node( pts[pts.length/2] );
 		  t.depth = depth;
 		  int size = pts.length;
@@ -142,7 +142,6 @@ public class TDTree {
 		  t.rt = (buildBalanced(right, t.rt, depth+1));
 		  
 	  }else{
-		  Arrays.sort(pts, new PointComparator("y"));
 		  t = new Node( pts[pts.length/2] );
 		  t.depth = depth;
 		  int size = pts.length;
