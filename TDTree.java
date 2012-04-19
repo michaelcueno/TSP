@@ -63,9 +63,10 @@ public class TDTree {
 	}
 
   // Constructors ------------------//
+  // Point array must be sorted previously (low to high)
   public TDTree(Point [] pts){
     this();
-    root = buildBalanced(pts, root, 0);
+    root = buildBalanced(pts);
   }
   public TDTree() {
 	  root = null;
@@ -93,10 +94,35 @@ public class TDTree {
   public Double maxY(){
     return maxY;
   }
+ 
+  /*
+   * buildBalanced requires a sorted Point[] array to be passed in
+   * if the array is not sorted, the method breaks
+   * Sort once. Pass in one array double sized x sorted on left, y sorted on right
+   * book keeping to build the tree
+   */ 
   
-  
-  public Node buildBalanced(Point[] pts, Node t, int depth){
+  public Node buildBalanced(Point[] pts){
 
+	  Point[] sorted = new Point[pts.length*2];
+	  Arrays.sort(pts, new PointComparator("x"));
+	  for(int i = 0 ; i < pts.length ; i++ ){
+		  sorted[i] = pts[i];
+	  }
+	  Arrays.sort(pts, new PointComparator("y"));
+	  for(int j = pts.length ; j < sorted.length ; j++ ){
+		  sorted[j] = pts[j];
+	  }
+	  
+	  return buildBalanced( sorted, root, 0 );
+  }
+
+  // It's just a matter of inserting in the correct order. 
+  // always insert the median followed by the median of the left and right partition
+  //  ------------x----------X-----------x---------- X dimension
+  //  -----x-----------x-----------x----------x----- Y dimension
+  public Node buildBalanced(Point[] pts, Node t, int depth){
+  
 	  if(pts.length == 0){
 		  return null;
 		  
@@ -246,6 +272,10 @@ public class TDTree {
   /*
    * Prints in pre-order. Indents based on depth in tree.
    */
+   public void preOrderPrint(){
+	   preOrderPrint(root);
+   }
+
    public void preOrderPrint(Node t){
 	  if(t == null){
 		  return;
@@ -276,7 +306,7 @@ public class TDTree {
 	if( t == null ) {return; }
 
 //      Uncomment next line to toggle coordinate points (xx.xx, xx.xx) to be drawn
-//      StdDraw.text(t.value.x(), t.value.y(), t.value.toString());
+        StdDraw.text(t.value.x(), t.value.y(), t.value.toString());
 
 	StdDraw.circle(t.value.x(), t.value.y(), .005);
 	if( t.depth%2 == 0 ){
