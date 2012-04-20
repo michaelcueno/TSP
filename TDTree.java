@@ -111,10 +111,10 @@ public class TDTree {
 	  }
 	  Arrays.sort(pts, new PointComparator("y"));
 	  for(int j = pts.length ; j < sorted.length ; j++ ){
-		  sorted[j] = pts[j];
+		  sorted[j] = pts[j - pts.length];
 	  }
-	  
-	  return buildBalanced( sorted, (1/4)*sorted.length, root, 0 );
+	  int median = (sorted.length / 4);
+	  return buildBalanced( sorted, median, root, 0 );
   }
 
   /*   
@@ -129,28 +129,36 @@ public class TDTree {
    *
    */   
   public Node buildBalanced(Point[] xySort, int med, Node t, int depth){
-  
+	  
+	  //Base cases -----------------
 	  if(xySort.length == 0){
 		  return null;
+	  }
+	  if(xySort.length == 2){
+		  t = new Node(xySort[med]);
+	  //-----------------------------
+		  
 	  }else if(depth%2 == 0){
 		  int split = xySort.length/2;
 		  t = new Node( xySort[med] );
 		  t.depth = depth;
 
-		  Point[] leftX = Arrays.copyOfRange(xySort, 0, med);// append y values
-		  Point[] rightX = Arrays.copyOfRange(xySort, med+1, split);
-		  Point[] leftY = new Point[split/2];
-		  Point[] rightY = new Point[split/2];
+		  Point[] leftX = Arrays.copyOfRange(xySort, 0, med);
+		  Point[] rightX = Arrays.copyOfRange(xySort, med+1, split);  // BUG : what if med+1 doesn't exist.
+		  Point[] leftY = new Point[leftX.length];
+		  Point[] rightY = new Point[rightX.length];
 
+		  // This is where we take advantage of the already sorted xySort array
+		  int j = 0;
 		  for(int i = split; i < xySort.length ; i++){
-			  int j = 0;
+			 
 			  if( Arrays.asList(leftX).contains(xySort[i])){
 				 leftY[j] = xySort[i];
 				 j++;
 			  }
 		  } 
+		  j = 0;
 		  for(int i = split; i < xySort.length ; i++){
-			  int j = 0;
 			  if( Arrays.asList(rightX).contains(xySort[i])){
 				 rightY[j] = xySort[i];
 				 j++;
@@ -169,7 +177,7 @@ public class TDTree {
 			  if( left[i] == left[med])
 				  lt_med = i;
 		  }
-		  // lt_med now equals the index to left where t's left node resides amongst the sorted y values
+		  // lt_med now equals the index to left where t's lt_node resides amongst the sorted y values
 
 		  med = rightX.length/2;
 		  int rt_med = 0;
@@ -182,27 +190,27 @@ public class TDTree {
 		  t.rt = (buildBalanced(right, rt_med, t.rt, depth+1));
 		  
 	  }else{
-		  // Make relevant for the y-dimension...
+		  
 		  int split = xySort.length/2;
 		  t = new Node( xySort[med] );
 		  t.depth = depth;
 
-		  Point[] leftX = Arrays.copyOfRange(xySort, 0, med);// append y values
-		  Point[] rightX = Arrays.copyOfRange(xySort, med+1, split);
-		  Point[] leftY = new Point[split/2];
-		  Point[] rightY = new Point[split/2];
-
-		  for(int i = split; i < xySort.length ; i++){
-			  int j = 0;
-			  if( Arrays.asList(leftX).contains(xySort[i])){
-				 leftY[j] = xySort[i];
+		  Point[] leftY = Arrays.copyOfRange(xySort, split, med);
+		  Point[] rightY = Arrays.copyOfRange(xySort, med+1, xySort.length);
+		  Point[] leftX = new Point[leftY.length];
+		  Point[] rightX = new Point[rightY.length];
+		  
+		  int j = 0;
+		  for(int i = 0; i < split ; i++){
+			  if( Arrays.asList(leftY).contains(xySort[i])){
+				 leftX[j] = xySort[i];
 				 j++;
 			  }
 		  } 
-		  for(int i = split; i < xySort.length ; i++){
-			  int j = 0;
-			  if( Arrays.asList(rightX).contains(xySort[i])){
-				 rightY[j] = xySort[i];
+		  j = 0;
+		  for(int i = 0; i < split ; i++){
+			  if( Arrays.asList(rightY).contains(xySort[i])){
+				 rightX[j] = xySort[i];
 				 j++;
 			  }
 		  }
@@ -210,18 +218,15 @@ public class TDTree {
 		  Point[] left = concatArray(leftX, leftY);
 		  Point[] right = concatArray(rightX, rightY);
 
-		  // Find median x value amongst the y sorted values in left and right
-		  // to be used in next recursive call. 
-
-		  med = leftX.length/2;
+		
+		  med = leftY.length/2;
 		  int lt_med = 0;
 		  for(int i = leftX.length; i < left.length ; i++){
 			  if( left[i] == left[med])
 				  lt_med = i;
 		  }
-		  // lt_med now equals the index to left where t's left node resides amongst the sorted y values
-
-		  med = rightX.length/2;
+		  
+		  med = rightY.length/2;
 		  int rt_med = 0;
 		  for(int i = rightX.length; i < right.length ; i++){
 			  if( right[i] == right[med])
@@ -605,7 +610,7 @@ public class TDTree {
 	static Point[] concatArray( Point[] x, Point[] y ){
 
 		int size = x.length;
-		if(size != y.length){
+		if(x.length != y.length){
 			System.out.println("Fatal Error: in concatArray, array lengths must match");
 		}
 		Point[] result = new Point[size*2];

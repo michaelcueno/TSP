@@ -12,34 +12,45 @@
  *							*
  ********************************************************/
 
+import java.util.Arrays;
 import java.util.Scanner;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
 
 
 public class TSP{
 
 
 
-	public static void main(String[] args){
+	public static void main(String[] args) throws FileNotFoundException{
 
 		ArrayList<Point> points = new ArrayList<Point>();
-		TDTree pointTree = new TDTree();
+		
 
 		//Get points from arg
-		File file = new File(arg[0]);
+		File file = new File(args[0]);
 		Scanner fileScanner = new Scanner(file);
-		fileScanner.useDelimiter(",");
 
-		while(fileScanner.hasNext()){
+		while(fileScanner.hasNextDouble()){
 			double x = fileScanner.nextDouble();
 			double y = fileScanner.nextDouble();
 			Point p = new Point(x,y);
 			points.add(p);
 		}
 		
-		Point[] pts = points.toArray();
+		Point[] pts = new Point[points.size()];
+		points.toArray(pts);
 
-		TDTree.buildBalanced(pts);
+		System.out.println("pts: " + points);
+		TDTree pointTree = new TDTree(pts);
+		
+		pointTree.preOrderPrint(pointTree.root);
+		pointTree.draw();
+		StdDraw.show(1000);
+		StdDraw.circle(.1, .6, .007);
+		System.out.println(pointTree.nearest(.1,.6));
+		StdDraw.show(0);
 
 		//Load points into TDTREE
 
