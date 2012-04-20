@@ -132,6 +132,10 @@ public class TDTree {
   
 	  if(xySort.length == 0){
 		  return null;
+	  }
+	  if(xySort.length == 2){
+		  t = new Node(xySort[med]);
+	 
 	  }else if(depth%2 == 0){
 		  int split = xySort.length/2;
 		  t = new Node( xySort[med] );
