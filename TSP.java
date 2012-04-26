@@ -12,51 +12,41 @@
  *							*
  ********************************************************/
 
-import java.util.Arrays;
-import java.util.Scanner;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.PriorityQueue;
 
 
 public class TSP{
 
+	TDTree<Point> tree;
+	LinkedList<Point> MST;
+	PriorityQueue<Point> q;
+	int[] index;   //for quick indexing into priority queue
 
+	public TSP(Point[] pts){
 
-	public static void main(String[] args) throws FileNotFoundException{
+		tree = new TDTree(pts);
+		MST = new LinkedList();
+		q = new PriorityQueue();
+		index = new int[pts.length] 
+	}
 
-		ArrayList<Point> points = new ArrayList<Point>();
-		
-
-		//Get points from arg
-		File file = new File(args[0]);
-		Scanner fileScanner = new Scanner(file);
-
-		while(fileScanner.hasNextDouble()){
-			double x = fileScanner.nextDouble();
-			double y = fileScanner.nextDouble();
-			Point p = new Point(x,y);
-			points.add(p);
-		}
-		
-		Point[] pts = new Point[points.size()];
-		points.toArray(pts);
-
-		System.out.println("pts: " + points);
-		TDTree pointTree = new TDTree(pts);
-		
-		pointTree.preOrderPrint(pointTree.root);
-		pointTree.draw();
-		StdDraw.show(1000);
-		StdDraw.circle(.1, .6, .007);
-		System.out.println(pointTree.nearest(.1,.6));
-		StdDraw.show(0);
-
-		//Load points into TDTREE
-
-		//Find MST of points
-		
-		//Find tour
+	public void execute(){
+	
+		//pick arbitrary point
+		//find nearest neighbor
+		//add to MST
+		//add to q
+		//find nearest neighbors to points in MST
+		//if next nearest 
 
 	}
+
+
+
+
 }
+
+
+

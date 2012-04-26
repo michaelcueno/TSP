@@ -1,11 +1,6 @@
-/********************************************************
- *  Two Dimensional Tree for storing points for the 	*
- *  Traveling Salesman Problem 				*
- *  Not fully functional tree 				*
- *  	-no delete method				*
- *  	-not a rebalancing tree				*
- *							*
- ********************************************************/
+/*  version: 1.3
+ * 			
+ */
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -14,6 +9,7 @@ import java.lang.Double;
 
 public class TDTree {
 
+  // TDTree data members here.
 	Node root;
 	int size;
 	int height;
@@ -21,7 +17,8 @@ public class TDTree {
 	private final double LOWERBOUND = -2;
 	private final double UPPERBOUND =  2;
 
-	//Nested Node Class
+
+  // nested classes (if any) could go here
 
 	private static class Node{
 		
@@ -35,7 +32,7 @@ public class TDTree {
 		Node(Point value){
 			this(value, null, null, 0, 0);
 		}
-		Node(Point value, Node lt, Node rt, int depth, int height){
+		Node(Point value, Node lt, Node rt, int depth, int height){ 
 			this.value = value;
 			this.lt = lt;
 			this.rt = rt;
@@ -62,23 +59,43 @@ public class TDTree {
 		}
 	}
 
-  // Constructors ------------------//
-  // Point array must be sorted previously (low to high)
+
+  /*************** PART OF LEVEL 3 FUNCTIONALITY ****/
+  /**
+  * insert takes care of rebuilding
+  *
+  *   Given trivial implementation just calls insert
+  *   
+  *      for each point, but does not control balance
+  *      of tree.
+  */
   public TDTree(Point [] pts){
     this();
-    root = buildBalanced(pts);
+    root = buildBalanced(pts, root, 0);
   }
+  
+
+	  
+  
+  /*************** LEVEL 1 FUNCTIONALITY ************/
+  /**
+  * 
+  *   default constructor creates an empty tree.
+  */
   public TDTree() {
 	  root = null;
 	  size = 0;
 	  height = -1;
 	  maxX = maxY = minX = minY = null;
   }
-
-  // Simple Statistic methods -----//
+  /**
+  * 
+  * runtime requirement:  O(1)
+  */
   public int size() {
     return size(root);
   }
+
   public int height() {
     return height;
   }
@@ -94,147 +111,54 @@ public class TDTree {
   public Double maxY(){
     return maxY;
   }
- 
-  /*
-   * buildBalanced requires a sorted Point[] array to be passed in
-   * if the array is not sorted, the method breaks
-   * Sort once. Pass in one array double sized x sorted on left, y sorted on right
-   * book keeping to build the tree
-   */ 
   
-  public Node buildBalanced(Point[] pts){
+  /*
+   * Put all points in tree into list 
+   * I went with the nlog^2n time algorithm
+   */
+  public Node reBalance(Node t){
+	  
 
-	  Point[] sorted = new Point[pts.length*2];
-	  Arrays.sort(pts, new PointComparator("x"));
-	  for(int i = 0 ; i < pts.length ; i++ ){
-		  sorted[i] = pts[i];
-	  }
-	  Arrays.sort(pts, new PointComparator("y"));
-	  for(int j = pts.length ; j < sorted.length ; j++ ){
-		  sorted[j] = pts[j - pts.length];
-	  }
-	  int median = (sorted.length / 4);
-	  return buildBalanced( sorted, median, root, 0 );
+	  ArrayList<Point> list = new ArrayList<Point>();
+	  list = toArrayList(t, list);  
+	  Point[] pts = new Point[size(t)];
+	  pts = list.toArray(pts);
+	  int depth = t.depth;
+	  t = null;
+	  t = buildBalanced(pts, t, depth );
+	  return t;
   }
 
-  /*   
-   * Vars:
-   * 	xySort: Point array with first half = point set sorted on x dimension
-   * 				 second half = point set sorted on y dimension
-   * 	med: median of the sub array
-   * 	split : the middle of xySort (0-split = x sorted while split - xySort.length = y sorted)
-   * 	leftX, leftY, rightX, rightY : sorted arrays based on x or y, eventually get concatonated
-   * 		as leftXleftY and rightXrightY and stored into ....
-   * 	left, right: point arrays that are passed into next recursive call as xySort
-   *
-   */   
-  public Node buildBalanced(Point[] xySort, int med, Node t, int depth){
-	  
-	  //Base cases -----------------
-	  if(xySort.length == 0){
+  public Node buildBalanced2(Point[] pts, Node t, int depth){
+
+	  if(pts.length == 0){
 		  return null;
-	  }
-	  if(xySort.length == 2){
-		  t = new Node(xySort[med]);
-	  //-----------------------------
-
-	  }else if(depth%2 == 0){
-		  int split = xySort.length/2;
-		  t = new Node( xySort[med] );
+		  
+	  }else if(pts.length == 1){
+		  t = new Node(pts[0]);
 		  t.depth = depth;
-
-		  Point[] leftX = Arrays.copyOfRange(xySort, 0, med);
-		  Point[] rightX = Arrays.copyOfRange(xySort, med+1, split);  // BUG : what if med+1 doesn't exist.
-		  Point[] leftY = new Point[leftX.length];
-		  Point[] rightY = new Point[rightX.length];
-
-		  // This is where we take advantage of the already sorted xySort array
-		  int j = 0;
-		  for(int i = split; i < xySort.length ; i++){
-			 
-			  if( Arrays.asList(leftX).contains(xySort[i])){
-				 leftY[j] = xySort[i];
-				 j++;
-			  }
-		  } 
-		  j = 0;
-		  for(int i = split; i < xySort.length ; i++){
-			  if( Arrays.asList(rightX).contains(xySort[i])){
-				 rightY[j] = xySort[i];
-				 j++;
-			  }
-		  }
-
-		  Point[] left = concatArray(leftX, leftY);
-		  Point[] right = concatArray(rightX, rightY);
-
-		  // Find median x value amongst the y sorted values in left and right
-		  // to be used in next recursive call. 
-
-		  med = leftX.length/2;
-		  int lt_med = 0;
-		  for(int i = leftX.length; i < left.length ; i++){
-			  if( left[i] == left[med])
-				  lt_med = i;
-		  }
-		  // lt_med now equals the index to left where t's lt_node resides amongst the sorted y values
-
-		  med = rightX.length/2;
-		  int rt_med = 0;
-		  for(int i = rightX.length; i < right.length ; i++){
-			  if( right[i] == right[med])
-				  rt_med = i;
-		  }
-
-		  t.lt = (buildBalanced(left, lt_med, t.lt, depth+1));
-		  t.rt = (buildBalanced(right, rt_med, t.rt, depth+1));
+		  
+	  }else if(depth%2 == 0){
+		  Arrays.sort(pts, new PointComparator("x"));
+		  t = new Node( pts[pts.length/2] );
+		  t.depth = depth;
+		  int size = pts.length;
+		  int mid = size/2;
+		  Point[] left = Arrays.copyOfRange(pts, 0, mid);
+		  Point[] right = Arrays.copyOfRange(pts, mid+1, size);
+		  t.lt = (buildBalanced2(left, t.lt, depth+1));
+		  t.rt = (buildBalanced2(right, t.rt, depth+1));
 		  
 	  }else{
-		  
-		  int split = xySort.length/2;
-		  t = new Node( xySort[med] );
+		  Arrays.sort(pts, new PointComparator("y"));
+		  t = new Node( pts[pts.length/2] );
 		  t.depth = depth;
-
-		  Point[] leftY = Arrays.copyOfRange(xySort, split, med);
-		  Point[] rightY = Arrays.copyOfRange(xySort, med+1, xySort.length);
-		  Point[] leftX = new Point[leftY.length];
-		  Point[] rightX = new Point[rightY.length];
-		  
-		  int j = 0;
-		  for(int i = 0; i < split ; i++){
-			  if( Arrays.asList(leftY).contains(xySort[i])){
-				 leftX[j] = xySort[i];
-				 j++;
-			  }
-		  } 
-		  j = 0;
-		  for(int i = 0; i < split ; i++){
-			  if( Arrays.asList(rightY).contains(xySort[i])){
-				 rightX[j] = xySort[i];
-				 j++;
-			  }
-		  }
-
-		  Point[] left = concatArray(leftX, leftY);
-		  Point[] right = concatArray(rightX, rightY);
-
-		
-		  med = leftY.length/2;
-		  int lt_med = 0;
-		  for(int i = leftX.length; i < left.length ; i++){
-			  if( left[i] == left[med])
-				  lt_med = i;
-		  }
-		  
-		  med = rightY.length/2;
-		  int rt_med = 0;
-		  for(int i = rightX.length; i < right.length ; i++){
-			  if( right[i] == right[med])
-				  rt_med = i;
-		  }
-
-		  t.lt = (buildBalanced(left, lt_med, t.lt, depth+1));
-		  t.rt = (buildBalanced(right, rt_med, t.rt, depth+1));
+		  int size = pts.length;
+		  int mid = size/2;
+		  Point[] left = Arrays.copyOfRange(pts, 0, mid);
+		  Point[] right = Arrays.copyOfRange(pts, mid+1, size);
+		  t.lt = (buildBalanced2(left, t.lt, depth+1));
+		  t.rt = (buildBalanced2(right, t.rt, depth+1));
 	
 	  }
 	  
@@ -243,6 +167,52 @@ public class TDTree {
 	  return t;
   }
   
+   
+  public Node buildBalanced(Point[] pts, Node t, int depth){
+
+	  if(pts.length == 0){
+		  return null;
+		  
+	  }else if(pts.length == 1){
+		  t = new Node(pts[0]);
+		  t.depth = depth;
+		  size++;
+		  
+	  }else if(depth%2 == 0){
+		  Arrays.sort(pts, new PointComparator("x"));
+		  t = new Node( pts[pts.length/2] );
+		  size++;
+		  t.depth = depth;
+		  int size = pts.length;
+		  int mid = size/2;
+		  Point[] left = Arrays.copyOfRange(pts, 0, mid);
+		  Point[] right = Arrays.copyOfRange(pts, mid+1, size);
+		  t.lt = (buildBalanced(left, t.lt, depth+1));
+		  t.rt = (buildBalanced(right, t.rt, depth+1));
+		  
+	  }else{
+		  Arrays.sort(pts, new PointComparator("y"));
+		  t = new Node( pts[pts.length/2] );
+		  size++;
+		  t.depth = depth;
+		  int size = pts.length;
+		  int mid = size/2;
+		  Point[] left = Arrays.copyOfRange(pts, 0, mid);
+		  Point[] right = Arrays.copyOfRange(pts, mid+1, size);
+		  t.lt = (buildBalanced(left, t.lt, depth+1));
+		  t.rt = (buildBalanced(right, t.rt, depth+1));
+	
+	  }
+	  
+	  t.size = size(t.lt) + size(t.rt) + 1;
+	  t.height = Math.max(height(t.lt), height(t.rt)) + 1;
+	  return t;
+  }
+  
+  /**
+  * TODO
+  * returns false if point pt already in tree
+  */
   public boolean insert(Point pt) {
 	if(contains(pt)){
 		return false;
@@ -255,6 +225,9 @@ public class TDTree {
 		size++;
 		return true; 
   }
+	/*
+	* TODO - implement check for unbalanced-ness
+	*/
 
   public boolean insert(double x, double y) {
     return insert(new Point(x,y));
@@ -262,10 +235,10 @@ public class TDTree {
   
   private Node insert(Point p, Node t){
 	updateStats(p);
-  	if(t == null){  // Base Case
+  	if(t == null){
   		t = new Node(p);
   		
-  	}else if(t.depth%2 != 0){ // Split on Y coordinate
+  	}else if(t.depth%2 != 0){
   		
   		if(p.compareY(t.value) < 0){ // insert to the left
   			t.setLt(insert(p, t.lt));
@@ -281,7 +254,7 @@ public class TDTree {
   	  			t.setRt(insert(p, t.rt));
   	  		}
   		}
-  	}else if(t.depth%2 == 0){  // Split on X coordinate
+  	}else if(t.depth%2 == 0){
   		if(p.compareX(t.value) < 0){  // insert to the left
   			t.setLt(insert(p, t.lt));
   			
@@ -297,12 +270,19 @@ public class TDTree {
   	  		}
   		}
   	}
+  	if(isSizedBalanced(t) != true) {
+		System.out.println("Size violation at node at"+t);
+		System.out.println("Rebuilding tree");
+		t = reBalance(t);
+	}
 	t.size = size(t.lt) + size(t.rt) + 1;
 	t.height = Math.max(height(t.lt), height(t.rt)) + 1;
 	
 	return t;
   }
-
+  /**
+  * Recrusive contains method 
+  */
   public boolean contains(Point p){
     return contains(p, root);
   }
@@ -359,7 +339,6 @@ public class TDTree {
    public void preOrderPrint(){
 	   preOrderPrint(root);
    }
-
    public void preOrderPrint(Node t){
 	  if(t == null){
 		  return;
@@ -378,9 +357,108 @@ public class TDTree {
 	  preOrderPrint(t.rt);
   }
 
+  /******************** LEVEL 2 FUNCTIONALITY ******/
 
   /**
-  * Draw Method: Recursive Structure
+  * Delete
+  Algorithm:
+	1. find which subtree is larger, tl or tr				
+	2. depending on above, find min of tr or max of tl
+	3. copy this value to node passed into delete method
+	4. delete copied node in subtree
+	5. check for balance (might be unnecessary... )
+  */
+  public boolean delete(Point p) {
+	if(contains(p)){
+		root = delete(root, p);
+		size--;
+		return true;
+	}else
+		return false;
+  }
+  /**
+  * for convenience
+  */
+  public boolean delete(double x, double y) {
+    return delete(new Point(x,y));
+  }
+  
+  public Node delete(Node t, Point p){
+
+	if(t == null){    // point doesn't exist
+		return t;
+	}
+	int xcmp = p.compareX(t.value);
+	int ycmp = p.compareY(t.value);
+	if(t.depth%2 == 0){
+  		
+  		if(xcmp < 0){ 
+  			t.lt = delete(t.lt, p);
+  			
+  		}else if(xcmp > 0){ 
+  			t.rt = delete(t.rt, p);
+  			
+  		}else{  // tie breaker
+  			if(ycmp < 0){  
+  	  			t.lt = delete(t.lt, p);
+  	  			
+  	  		}else if(ycmp > 0){  
+  	  			t.rt = delete(t.rt, p);
+  	  		}else if(t.rt != null){          // Point found and its got a right tree
+				
+				t.value = findMin( t.rt, t.depth%2 ).value;           // Set node to delete to smallest value in rt
+				t.rt = delete( t.rt, t.value );     	 // recursivley delete smallest value in rt	
+			}else if(t.lt != null){						// 
+				
+				t.value = findMin( t.lt, t.depth%2).value;
+				t.lt = null;
+				t.rt = delete( t.lt, t.value);   // Swap subtrees to maintain structure
+			}else
+				t = (t.lt != null)? t.lt : t.rt;     
+  		}
+  	}else{
+  		if(ycmp < 0){  
+  			t.lt = delete(t.lt, p);
+  			
+  		}else if(ycmp > 0){  
+  			t.rt = delete(t.rt, p);
+  			
+  		}else{   // tie breaker
+  			if(xcmp < 0){ 
+  	  			t.lt = delete(t.lt, p);
+  	  			
+  	  		}else if(xcmp > 0){ 
+  	  			t.rt = delete(t.rt, p);
+  	  		}else if(t.rt != null){          // Point found and its got a right tree
+				
+				t.value = findMin( t.rt, t.depth%2 ).value;           // Set node to delete to smallest value in rt
+				t.rt = delete( t.rt, t.value );     	 // recursivley delete smallest value in rt	
+			}else if(t.lt != null){						// 
+				
+				t.value = findMin( t.lt, t.depth%2).value;
+				t.lt = null;
+				t.rt = delete( t.lt, t.value);   // Swap subtrees to maintain structure
+			}else
+				t = (t.lt != null)? t.lt : t.rt;     
+  		}
+  	}
+//	if(t != null){
+//		if(isSizedBalanced(t) != true) {
+//			System.out.println("Size violation at node at"+t);
+//			System.out.println("Rebuilding tree");
+//			t = reBalance(t);
+//		}
+//	}
+	return t;
+	
+  }
+
+
+  /**
+  * find if horizontal or vertical cut
+  * find if lt or rt of parent node
+  * update lowerbound and upper bound
+  * draw
   */
   public void draw(){
 	draw(root, UPPERBOUND, UPPERBOUND, LOWERBOUND, LOWERBOUND); 
@@ -388,10 +466,7 @@ public class TDTree {
   
   public void draw(Node t, double maxX, double maxY, double minX, double minY){
 	if( t == null ) {return; }
-
-//      Uncomment next line to toggle coordinate points (xx.xx, xx.xx) to be drawn
-        StdDraw.text(t.value.x(), t.value.y(), t.value.toString());
-
+//  StdDraw.text(t.value.x(), t.value.y(), t.value.toString());
 	StdDraw.circle(t.value.x(), t.value.y(), .005);
 	if( t.depth%2 == 0 ){
 		StdDraw.line(t.value.x(), maxY, t.value.x(), minY); 
@@ -404,10 +479,17 @@ public class TDTree {
 	}
   }	
 	
+
+  /***************** PART OF LEVEL 3 FUNCTIONALITY *****/
+  /** Note that incremental enforcement of the size-balanced
+  *     property is part of LEVEL 3.
+  *   It requires modification to insert and delete.
+  *******************************************************/
   /**
-   * Nearest Point method: returns the point with the least euclidean distance
-   * to the point passed in (p)
-   * Returns null if tree is empty
+  * TODO
+  *  returns point in tree closest to point p (by 
+  *     Euclidean distance).
+  *  if tree empty, null is returned.
   */
   public Point nearest(Point p) {
      if(size == 0 || root == null){
@@ -416,20 +498,23 @@ public class TDTree {
     	 return nearest(p, root);
   }
 
+  /**
+  * for convenience
+  */
   public Point nearest(double x, double y) {
      return nearest(new Point(x,y));
   }
 
-  /**
+  /***
    * Algorithm (Nearest Neighbor):
-   * 	1: Recurse down the tree as if inserting point p
-   * 	2: when leaf is found, compute distance and update as best
-   * 	3: roll out of the recursion and at each node
+   * 	1. Recurse down the tree as if inserting point p
+   * 	2. when leaf is found, compute distance and update as best
+   * 	3. roll out of the recursion and at each node
    * 		decide if other subtree must be searched by finding 
    * 		distance to axis and if this is greater than best do not search
    * 		else
    * 		search the subtree using this algorithm
-   * 	4: when root is reached, return p
+   * 	4. when root is reached, return p
    */
   public Point nearest(Point p, Node t){
 	 
@@ -532,7 +617,67 @@ public class TDTree {
 	  
   }
 
+  /****************** BONUS METHODS ***************/
+  /**
+  * TODO
+  *
+  *   given points indicate the "southwest" and "northeast"
+  *     corners of the query rectangle.
+  *   populates Collection<Point> result with points in the
+  *     rectangle.
+  */
+  public void rangeQuery(Point sw, Point ne,
+                            Collection<Point> result) {
+    	System.out.println("TDTree unimplemented method:  rangeQuery()");
+  }
 
+  /**
+  *  for convenience.  Just calls above method
+  */
+  public void rangeQuery(double minX, double maxX, 
+                            double minY, double maxY, 
+                            Collection<Point> result) {
+
+	Point sw = new Point(minX, minY);
+	Point ne = new Point(maxX, maxY);
+
+	rangeQuery(sw, ne, result);
+  }
+
+
+  /**
+  * TODO
+  *   given points indicate the "southwest" and "northeast"
+  *     corners of the query rectangle.
+  *   given points indicate the "southwest" and "northeast"
+  *     corners of the query rectangle.
+  *   returns number of points within the rectangle (but NOT
+  *     the points themselves).
+  *   
+  */
+  public int rangeSize(Point se, Point ne) {
+    	System.out.println("TDTree unimplemented method:  rangeSize()");
+	return 0;
+
+  }
+  public int rangeSize(double minX, double maxX, 
+                            double minY, double maxY){
+
+	Point sw = new Point(minX, minY);
+	Point ne = new Point(maxX, maxY);
+
+	return rangeSize(sw, ne);
+  }
+
+  /*
+   * Helper methods
+   *  *size(Node t) : returns number of nodes in subtrees of t
+   *  *updateStats(Point p) : checks p with maxX, maxY, minX, minY and updates 
+   *  		if new extreme found
+   *  *height(Node t) : returns height of node but resolves null pointers for use in 
+   *		insert method
+   */
+  
   private int size(Node t){
 	int size = (t == null)? -0: t.size;
 	return size;
@@ -559,8 +704,17 @@ public class TDTree {
 		  minY = pt.y();
 	  }
   }
+	/*
+	 * FindMin Algorithm: 
+	 * 1. if current dimension == dim
+			- if left sub-tree == null -> return current
+			- else search left tree
+		  else
+			- must search both left and right subtrees
+			- return the minimum of FindMin on left and right subtree
+	*/
 	
-  private Node findMin( Node t, int dim ){ 
+  private Node findMin( Node t, int dim ){        // if dim == 0, find smallest x : else y
 	if( t == null ){
 		return null;
 	}else if(t.depth%2 == dim){
@@ -592,7 +746,108 @@ public class TDTree {
 			return b;
 	
 	}
+	  private Node findMax( Node t, int dim ){        // if dim == 0, find smallest x : else y
+	if( t == null ){
+		return null;
+	}else if(t.depth%2 == dim){
+		if( t.rt == null )
+			return t;
+		else
+			return findMax( t.rt, dim );
+	}else 
+		if(t.lt == null && t.rt == null)
+			return t;
+		else
+			return maximum(findMax( t.rt, dim), findMax( t.lt, dim), dim);
+  }
+  
+  private Node maximum(Node a, Node b, int dim){
+	if(a == null)
+		return b;
+	else if(b == null)
+		return a;
+	else if(dim == 0)
+		if(a.value.compareX(b.value) > 0)
+			return a;
+		else
+			return b;
+	else
+		if(a.value.compareY(b.value) > 0)
+			return a;
+		else
+			return b;
 	
+	}
+	private boolean isSizedBalanced(Node t) {
+		return Math.max(size(t.lt), size(t.rt)) <= 2*Math.min(size(t.lt), size(t.rt))+1;
+	}
+	
+	/////////// TEST CASES////////////////
+	public void testFindMax(){
+		Node testX = findMax(root, 0);
+		Node testY = findMax(root, 1);
+		if(testX != null)
+			System.out.println("Max x = " + testX.value);
+		if(testY != null)
+			System.out.println("Max y = " + testY.value);
+			
+		testX = findMax(root.rt, 0);
+		testY = findMax(root.rt, 1);
+		if(testX != null)
+			System.out.println("root.rt Max x = " + testX.value);
+		if(testY != null)
+			System.out.println("root.rt Max y = " + testY.value);
+			
+		testX = findMax(root.lt.lt, 0);
+		testY = findMax(root.lt.lt, 1);
+		if(testX != null)
+			System.out.println("root.lt.lt Max x = " + testX.value);
+		if(testY != null)
+			System.out.println("root.lt.lt Max y = " + testY.value);
+			
+		testX = findMax(root.rt.lt.rt, 0);
+		testY = findMax(root.rt.lt.rt, 1);
+		if(testX != null)
+			System.out.println("root.rt.lt.rt Max x = " + testX.value);
+		if(testY != null)
+			System.out.println("root.rt.lt.rt Max y = " + testY.value);
+			
+			
+	
+	}
+	/////////// TEST CASES////////////////
+	public void testFindmin(){
+		Node testX = findMin(root, 0);
+		Node testY = findMin(root, 1);
+		if(testX != null)
+			System.out.println("min x = " + testX.value);
+		if(testY != null)
+			System.out.println("min y = " + testY.value);
+			
+		testX = findMin(root.rt, 0);
+		testY = findMin(root.rt, 1);
+		if(testX != null)
+			System.out.println("root.rt min x = " + testX.value);
+		if(testY != null)
+			System.out.println("root.rt min y = " + testY.value);
+			
+		testX = findMin(root.lt.lt, 0);
+		testY = findMin(root.lt.lt, 1);
+		if(testX != null)
+			System.out.println("root.lt.lt min x = " + testX.value);
+		if(testY != null)
+			System.out.println("root.lt.lt min y = " + testY.value);
+			
+		testX = findMin(root.rt.lt.rt, 0);
+		testY = findMin(root.rt.lt.rt, 1);
+		if(testX != null)
+			System.out.println("root.rt.lt.rt min x = " + testX.value);
+		if(testY != null)
+			System.out.println("root.rt.lt.rt min y = " + testY.value);
+			
+			
+	
+	}
 	/*
 	 * loads all points in tree into an arrayList O(n)
 	 */
@@ -607,50 +862,17 @@ public class TDTree {
 		return pts;
 	}
 	
-	static Point[] concatArray( Point[] x, Point[] y ){
-
-		int size = x.length;
-		if(x.length != y.length){
-			System.out.println("Fatal Error: in concatArray, array lengths must match");
-		}
-		Point[] result = new Point[size*2];
-		for(int i = 0; i < size ; i++){
-			result[i] = x[i];
-		}
-		for(int i = size; i < size*2 ; i++){
-			result[i] = y[i-size];
-		}
-		return result;
-	}
-
-	public static void main(String args[]){
-		
-		// TEST CASE 1     --------------------------------------------------
-		System.out.println("TEST CASE FOR concatArray( Point[] x, Point[] y)"); 
-		                 //--------------------------------------------------
-
-		Point[] x = new Point[5];
-		Point[] y = new Point[5];
-		for(int i = 0 ; i < x.length; i++){
-			x[i] = new Point(1.11*i, 2.22*i);
-		}
-		for(int i = 0 ; i < x.length; i++){
-			y[i] = new Point(1.11*i, 2.22*i);
-		}
-		Point[] concat = concatArray(x,y);
-		System.out.print("x: ");
-		for(int i = 0 ; i < x.length; i++){
-			System.out.print(x[i] + ", ");
-		}
-		System.out.println();
-		System.out.print("x: ");
-		for(int i = 0 ; i < x.length; i++){
-			System.out.print(y[i] + ", ");
-		}
-		System.out.println();
-		System.out.print("concationated: ");
-		for(int i = 0 ; i < concat.length; i++){
-			System.out.print(concat[i] + ", ");
-		}
-	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }

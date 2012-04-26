@@ -46,28 +46,31 @@ public class nnv {
 	tree.preOrderPrint();
         // StdDraw.setPenRadius(.007);
         while (true) {
-
             // the location (x, y) of the mouse
-            double x = StdDraw.mouseX();
-            double y = StdDraw.mouseY();
-            Point query = new Point(x, y);
+            if(StdDraw.mousePressed()){
+		    double x = StdDraw.mouseX();
+		    double y = StdDraw.mouseY();
+		    Point query = new Point(x, y);
 
-            // draw all of the points
-            StdDraw.clear();
-            StdDraw.setPenColor(StdDraw.BLACK);
-            tree.draw();
+		    // draw all of the points
+		    StdDraw.clear();
+		    StdDraw.setPenColor(StdDraw.BLACK);
+		    tree.draw();
 
-            // draw in red the nearest neighbor according to the brute-force algorithm
-            // StdDraw.setPenRadius(.03);
-            // StdDraw.setPenColor(StdDraw.RED);
-            tree.nearest(query).draw(StdDraw.RED);
-            // StdDraw.setPenRadius(.02);
+		    // draw in red the nearest neighbor according to the brute-force algorithm
+		    // StdDraw.setPenRadius(.03);
+		    // StdDraw.setPenColor(StdDraw.RED);
+		    System.out.println(x);
+		    System.out.println(y);
+		    tree.nearest(query).draw(StdDraw.RED);
+		    // StdDraw.setPenRadius(.02);
 
-            // draw in blue the nearest neighbor according to the kd-tree algorithm
-            StdDraw.setPenColor(StdDraw.BLUE);
-            // tdt.nearest(query).draw();
-            StdDraw.show(0);
-            StdDraw.show(40);
-        }
+		    // draw in blue the nearest neighbor according to the kd-tree algorithm
+		    StdDraw.setPenColor(StdDraw.BLUE);
+		    // tdt.nearest(query).draw();
+		    StdDraw.show(0);
+		    StdDraw.show(40);
+		}
+	    }
     }
 }
