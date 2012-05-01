@@ -505,30 +505,34 @@ public class TDTree {
      return nearest(new Point(x,y));
   }
 
-  /***
+
+  /**
    * Algorithm (Nearest Neighbor):
-   * 	1. Recurse down the tree as if inserting point p
-   * 	2. when leaf is found, compute distance and update as best
-   * 	3. roll out of the recursion and at each node
+   * 	1  Recurse down the tree as if inserting point p
+   * 	2  when leaf is found, compute distance and update as best
+   * 	3  roll out of the recursion and at each node
    * 		decide if other subtree must be searched by finding 
    * 		distance to axis and if this is greater than best do not search
    * 		else
    * 		search the subtree using this algorithm
-   * 	4. when root is reached, return p
+   * 	4  when root is reached, return p
    */
+
   public Point nearest(Point p, Node t){
 	 
-	  if(t== null){
+	  if( t == null ){
 		  return null;
 	  }
+	  
 	  Point candidate = t.value;
 	  double currentDist = p.distanceTo(t.value);
 	  
-	  // Must be a more elegant way to do this, but all we are doing here
-	  // is finding leaf node closest to p
+	  /*---- Find leaf node in tree ---------------------------------*/
 	  int cmpX = p.compareX(t.value);
 	  int cmpY = p.compareY(t.value);
+
 	  if(t.depth%2 != 0){
+
 		  if(cmpY < 0){ 
 			 
 				  candidate = nearest(p, t.lt);
@@ -537,7 +541,8 @@ public class TDTree {
 			  
 				  candidate = nearest(p, t.rt);
 			
-		  }else{  //Tie breaker ( sort on x ) 
+		  }else{  /*------Tie breaker ( sort on x )--------*/ 
+
 			  if(cmpX < 0){  
 				  
 				  candidate = nearest(p, t.lt);
@@ -548,7 +553,9 @@ public class TDTree {
 			  }else
 				  return p; // nearest point is always closest to itself..
 		  }
+
 	  }else if(t.depth%2 == 0){
+
 		 if(cmpX < 0){  
 			  
 			 candidate = nearest(p, t.lt);
@@ -569,7 +576,8 @@ public class TDTree {
 				  return p;
 		  }
 	  }
-	  // End of finding leaf node
+	  /*----- End of finding leaf node------------------------------*/
+
 	  // If candidate is null, then t is current best (leaf node)
 	  
 	  if(candidate == null){
@@ -704,16 +712,19 @@ public class TDTree {
 		  minY = pt.y();
 	  }
   }
-	/*
-	 * FindMin Algorithm: 
-	 * 1. if current dimension == dim
-			- if left sub-tree == null -> return current
-			- else search left tree
-		  else
-			- must search both left and right subtrees
-			- return the minimum of FindMin on left and right subtree
-	*/
 	
+  /**
+   * Returns the node in the lower-left corner
+   */
+  public Point getMin(){
+	  return findMin(root, 0).value;
+  }
+
+  /**
+   * returns the mininum element in the tree
+   * based on the dimension passed in as 
+   * @param dim
+   */
   private Node findMin( Node t, int dim ){        // if dim == 0, find smallest x : else y
 	if( t == null ){
 		return null;

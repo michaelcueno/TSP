@@ -19,32 +19,72 @@ import java.util.PriorityQueue;
 
 public class TSP{
 
-	TDTree<Point> tree;
-	LinkedList<Point> MST;
-	PriorityQueue<Point> q;
-	int[] index;   //for quick indexing into priority queue
+	TDTree tree;		// 2-d Tree containing points to construct tour from
+	LinkedList<Edge> MST;	// Minimum spanning tree of points
+	PriorityQueue<Point> q;	// priority queue used in single fragment algorithm (this algorithm)
+	int numPoints;		// number of points in the problem instance
+	Edge top;		// for referencing top element in q
+	Edge real;		// for referencing newly created edge
+	Point x;		// Arbitrary point 
+	Point y;		// Typically x's nearest isolated neighbor
 
+
+	/**
+	 * Factory constructor for TSP instance
+	 */
 	public TSP(Point[] pts){
-
+	
 		tree = new TDTree(pts);
-		MST = new LinkedList();
-		q = new PriorityQueue();
-		index = new int[pts.length] 
+		MST = new MST();
+		q = new PriorityQueue<Edge>();
+		numPoints = tree.size; 	
+		top = new Edge();
+		real = new Edge();	
+		x = new Point();
+		y = new Point();
 	}
 
 	public void execute(){
 	
 		//pick arbitrary point
+		x = tree.getMin();
+
 		//find nearest neighbor
-		//add to MST
+		y = tree.nearest(s);
+		real = new Edge(0, x, y);
+
 		//add to q
-		//find nearest neighbors to points in MST
-		//if next nearest 
+		q.add(real);
+
+		//for n-1 nodes
+		for(int i = 0; i < numPoints-1 ; i++){
+			
+			//loop until top node in q is real
+			while( !mst.realityCheck(q.peek()) ){
+
+				Edge top = p.peek();
+				y = tree.nearestIsolated(top.getParent()); 
+
+				// update edge which triggers a priority queue percolate up
+				top.update( y );			
+				// un-isolate y
+			}
+	
+			top = q.peek(); 
+			MST.add(top);
+
+			// Once added to the MST, we no longer need the point in the 2DTree
+			tree.delete(top.getParent());
+			tree.delete(top.getChild());
+
+			//find nearest neighbor to point just added to MST
+			y = tree.nearestIsolated(top.getChild()); 
+			real = new Edge( top.getChild, y );
+			q.add(real);	
+
+		}
 
 	}
-
-
-
 
 }
 
