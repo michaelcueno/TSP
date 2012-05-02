@@ -1,11 +1,8 @@
-/*  version: 1.3
- * 			
- */
-import java.awt.*;
-import java.awt.event.*;
+
 import java.util.*;
-import java.util.regex.Pattern;
+import java.io.FileNotFoundException;
 import java.lang.Double;
+import java.io.File;
 
 public class TDTree {
 
@@ -28,7 +25,6 @@ public class TDTree {
 		int depth;
 		int height;
 		int size;
-		double minX, minY, maxX, maxY; 
 		Node(Point value){
 			this(value, null, null, 0, 0);
 		}
@@ -83,6 +79,13 @@ public class TDTree {
   *   default constructor creates an empty tree.
   */
   public TDTree() {
+	  root = null;
+	  size = 0;
+	  height = -1;
+	  maxX = maxY = minX = minY = null;
+  }
+  
+  public void clear(){
 	  root = null;
 	  size = 0;
 	  height = -1;
@@ -376,6 +379,7 @@ public class TDTree {
 	}else
 		return false;
   }
+  
   /**
   * for convenience
   */
@@ -383,6 +387,9 @@ public class TDTree {
     return delete(new Point(x,y));
   }
   
+  /*
+   * Main recursive method
+   */
   public Node delete(Node t, Point p){
 
 	if(t == null){    // point doesn't exist
@@ -398,7 +405,7 @@ public class TDTree {
   		}else if(xcmp > 0){ 
   			t.rt = delete(t.rt, p);
   			
-  		}else{  // tie breaker
+  		}else{
   			if(ycmp < 0){  
   	  			t.lt = delete(t.lt, p);
   	  			
@@ -423,7 +430,7 @@ public class TDTree {
   		}else if(ycmp > 0){  
   			t.rt = delete(t.rt, p);
   			
-  		}else{   // tie breaker
+  		}else{  
   			if(xcmp < 0){ 
   	  			t.lt = delete(t.lt, p);
   	  			
@@ -466,7 +473,7 @@ public class TDTree {
   
   public void draw(Node t, double maxX, double maxY, double minX, double minY){
 	if( t == null ) {return; }
-//  StdDraw.text(t.value.x(), t.value.y(), t.value.toString());
+ //   StdDraw.text(t.value.x(), t.value.y(), t.value.toString());
 	StdDraw.circle(t.value.x(), t.value.y(), .005);
 	if( t.depth%2 == 0 ){
 		StdDraw.line(t.value.x(), maxY, t.value.x(), minY); 
@@ -478,7 +485,25 @@ public class TDTree {
 		draw(t.rt, maxX, maxY, minX, t.value.y());
 	}
   }	
-	
+  public void drawPoints(){
+	  StdDraw.setPenColor(StdDraw.GRAY);
+	  drawPoints(root, UPPERBOUND, UPPERBOUND, LOWERBOUND, LOWERBOUND);
+  }
+  public void drawPoints(Node t, double maxX, double maxY, double minX, double minY){
+		if( t == null ) {return; }
+	 
+		StdDraw.circle(t.value.x(), t.value.y(), .005);
+		if( t.depth%2 == 0 ){
+			 
+			drawPoints(t.lt, t.value.x(), maxY, minX, minY);
+			drawPoints(t.rt, maxX, maxY, t.value.x(), minY);
+		}else{ 
+			
+			drawPoints(t.lt, maxX, t.value.y(), minX, minY);
+			drawPoints(t.rt, maxX, maxY, minX, t.value.y());
+		}
+	  }	
+	  
 
   /***************** PART OF LEVEL 3 FUNCTIONALITY *****/
   /** Note that incremental enforcement of the size-balanced
@@ -757,107 +782,116 @@ public class TDTree {
 			return b;
 	
 	}
-	  private Node findMax( Node t, int dim ){        // if dim == 0, find smallest x : else y
-	if( t == null ){
-		return null;
-	}else if(t.depth%2 == dim){
-		if( t.rt == null )
-			return t;
-		else
-			return findMax( t.rt, dim );
-	}else 
-		if(t.lt == null && t.rt == null)
-			return t;
-		else
-			return maximum(findMax( t.rt, dim), findMax( t.lt, dim), dim);
-  }
-  
-  private Node maximum(Node a, Node b, int dim){
-	if(a == null)
-		return b;
-	else if(b == null)
-		return a;
-	else if(dim == 0)
-		if(a.value.compareX(b.value) > 0)
-			return a;
-		else
-			return b;
-	else
-		if(a.value.compareY(b.value) > 0)
-			return a;
-		else
-			return b;
-	
-	}
+ 
 	private boolean isSizedBalanced(Node t) {
 		return Math.max(size(t.lt), size(t.rt)) <= 2*Math.min(size(t.lt), size(t.rt))+1;
 	}
 	
-	/////////// TEST CASES////////////////
-	public void testFindMax(){
-		Node testX = findMax(root, 0);
-		Node testY = findMax(root, 1);
-		if(testX != null)
-			System.out.println("Max x = " + testX.value);
-		if(testY != null)
-			System.out.println("Max y = " + testY.value);
-			
-		testX = findMax(root.rt, 0);
-		testY = findMax(root.rt, 1);
-		if(testX != null)
-			System.out.println("root.rt Max x = " + testX.value);
-		if(testY != null)
-			System.out.println("root.rt Max y = " + testY.value);
-			
-		testX = findMax(root.lt.lt, 0);
-		testY = findMax(root.lt.lt, 1);
-		if(testX != null)
-			System.out.println("root.lt.lt Max x = " + testX.value);
-		if(testY != null)
-			System.out.println("root.lt.lt Max y = " + testY.value);
-			
-		testX = findMax(root.rt.lt.rt, 0);
-		testY = findMax(root.rt.lt.rt, 1);
-		if(testX != null)
-			System.out.println("root.rt.lt.rt Max x = " + testX.value);
-		if(testY != null)
-			System.out.println("root.rt.lt.rt Max y = " + testY.value);
-			
-			
-	
+	/*OH SOOO HACKY! AVOID DIRECT CONTACT WITH CODE BELOW! LOOOK AWAYYY*/
+	public Node deleteSlow(double x, double y){
+		return deleteSlow(new Point(x,y));
 	}
-	/////////// TEST CASES////////////////
-	public void testFindmin(){
-		Node testX = findMin(root, 0);
-		Node testY = findMin(root, 1);
-		if(testX != null)
-			System.out.println("min x = " + testX.value);
-		if(testY != null)
-			System.out.println("min y = " + testY.value);
-			
-		testX = findMin(root.rt, 0);
-		testY = findMin(root.rt, 1);
-		if(testX != null)
-			System.out.println("root.rt min x = " + testX.value);
-		if(testY != null)
-			System.out.println("root.rt min y = " + testY.value);
-			
-		testX = findMin(root.lt.lt, 0);
-		testY = findMin(root.lt.lt, 1);
-		if(testX != null)
-			System.out.println("root.lt.lt min x = " + testX.value);
-		if(testY != null)
-			System.out.println("root.lt.lt min y = " + testY.value);
-			
-		testX = findMin(root.rt.lt.rt, 0);
-		testY = findMin(root.rt.lt.rt, 1);
-		if(testX != null)
-			System.out.println("root.rt.lt.rt min x = " + testX.value);
-		if(testY != null)
-			System.out.println("root.rt.lt.rt min y = " + testY.value);
-			
-			
+	public Node deleteSlow(Point p){
+		
+		  ArrayList<Point> list = new ArrayList<Point>();
+		  list = toArrayList(root, list); 
+		  list.remove(p);
+		  Point[] pts = new Point[list.size()];
+		  pts = list.toArray(pts);
+		  clear();
+		  root = buildBalanced(pts, root, 0 );
+		  return root;
+	}
 	
+
+	public static void main(String[] args) throws FileNotFoundException{
+			
+		Scanner keyboard = new Scanner(System.in);
+		String fileName = "";
+
+		if(args[0].length() != 0){
+			fileName = args[0];
+		}else{
+			System.out.print("Input from file: ");
+			fileName = keyboard.next();
+		}
+
+		File file = new File(fileName);
+		Scanner fileScanner = new Scanner(file);
+
+		ArrayList<Point> points = new ArrayList<Point>();
+		while(fileScanner.hasNextDouble()){
+			
+			double x = fileScanner.nextDouble();
+			double y = fileScanner.nextDouble();
+			Point p = new Point(x,y);
+			points.add(p);
+		}
+		
+	
+		Point pts[] = new Point[points.size()];
+		points.toArray(pts);
+		TDTree tree = new TDTree(pts);
+		
+		
+		
+		StdDraw.setCanvasSize(500,500);
+		tree.draw();
+		StdDraw.show(700);
+		StdDraw.clear();
+		tree.deleteSlow(0.034, 0.042);
+		tree.draw();
+		StdDraw.show(700);
+	
+		
+		StdDraw.clear();
+		tree.deleteSlow(0.04, 0.262);
+		tree.draw();
+		StdDraw.show(700);
+	
+		
+		StdDraw.clear();
+		tree.deleteSlow(0.044, 0.363);
+		tree.draw();
+		StdDraw.show(700);
+	
+		
+		StdDraw.clear();
+		tree.deleteSlow(0.367, 0.347);
+		tree.draw();
+		StdDraw.show(700);
+	
+		
+		StdDraw.clear();
+		tree.deleteSlow(0.547, 0.278);
+		tree.draw();
+		StdDraw.show(700);
+
+		
+		StdDraw.clear();
+		tree.deleteSlow(0.634, 0.222);
+		tree.draw();
+		StdDraw.show(700);
+	
+		
+		StdDraw.clear();
+		tree.deleteSlow(0.888, 0.231);
+		tree.draw();
+		StdDraw.show(700);
+	
+		
+		StdDraw.clear();
+		tree.deleteSlow(0.764, 0.522);
+		tree.draw();
+		StdDraw.show(700);
+	
+		
+		StdDraw.clear();
+		tree.deleteSlow(0.875, 0.754);
+		tree.draw();
+		StdDraw.show(700);
+	
+		
 	}
 	/*
 	 * loads all points in tree into an arrayList O(n)

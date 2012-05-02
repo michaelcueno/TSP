@@ -9,12 +9,10 @@ public class Point implements Comparable {
 
   private double _x;
   private double _y;
-  public boolean isolated;
 
   public Point(double x, double y){
 	_x = x;
 	_y = y;
-	isolated = true;
   }
 
   public double x(){
@@ -92,6 +90,20 @@ public class Point implements Comparable {
 	  }
 	  return result;
   }  
+  @Override 
+  public boolean equals(Object aThat) {
+	    //check for self-comparison
+	    if ( this == aThat ) return true;
+
+	    if ( !(aThat instanceof Point) ) return false;
+
+	
+	    Point that = (Point)aThat;
+
+	    //now a proper field-by-field evaluation can be made
+	    return (this.x() == that.x()) && (this.y() == that.y());
+	  }
+
 @Override
 public int compareTo(Object arg0) {
 	int result = 0; 

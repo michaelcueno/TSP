@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 
 public class Edge{
 	
@@ -14,7 +13,6 @@ public class Edge{
 		this.dist = dist;
 		this.parent = parent;
 		this.child = child;
-		this.real = true;
 	}
 
 	public double getDist(){ return this.dist; }
@@ -31,16 +29,8 @@ public class Edge{
 
 	@Override
 	public String toString(){
-		return( u +" -> "+ v );
+		return( parent +" -> "+ child + "dist: " + dist);
 	}
 
-	@Override
-	public int compareTo( Edge other ){
-		if( this.dist < other.dist ){
-			return 1;
-		}else if( this.dist > other.dist ){
-			return 0;
-		}else
-			return 1; //Tie breaker goes to the house
-	}
+	
 }
