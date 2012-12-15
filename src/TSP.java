@@ -36,7 +36,7 @@ public class TSP{
 	Comparator<Edge> comparator;
 
 	/**
-	 * Factory constructor for TSP instance
+	 * Constructor for TSP instance
 	 */
 	public TSP(Point[] pts){
 		
@@ -46,6 +46,7 @@ public class TSP{
 		numPoints = tree.size; 	
 		q = new PriorityQueue<Edge>(numPoints, comparator);
 
+		System.out.println("TSP constructed");
 	}
 
 	public void execute(){
